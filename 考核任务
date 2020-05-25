@@ -1,0 +1,62 @@
+import numpy as np                
+from matplotlib import colors     
+from sklearn import svm            
+from sklearn.svm import SVC
+from sklearn import model_selection
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+from sklearn.datasets import load_iris
+iris=load_iris()
+x=iris.data
+y=iris.target
+print(iris.target)#target里面存储了150个数据的标签
+print(iris.data)#data里面存储的就是数据集
+x_train,x_test,y_train,y_test=model_selection.train_test_split(x,y,random_state=1,test_size=0.3)
+def classifier():
+    clf=svm.SVC(C=2,kernel='rbf',decision_function_shape='ovr')
+    return clf
+clf=classifier()
+def train(clf,x_train,y_train):
+    clf.fit(x_train,y_train.ravel())
+train(clf,x_train,y_train)
+def show_accuracy(a,b,tip):
+    acc=a.ravel()==b.ravel()
+    print('%s Accuracy:%.3f' %(tip,np.mean(acc)))
+def print_accuracy(clf,x_train,y_train,x_test,y_test):
+    print('trianing prediction:%.3f' %(clf.score(x_train, y_train)))
+    print('testing prediction:%.3f' %(clf.score(x_test, y_test)))
+    show_accuracy(clf.predict(x_train), y_train,'training data')
+    show_accuracy(clf.predict(x_test), y_test,'testing data')
+    print('decision_function:\n', clf.decision_function(x_train))
+print_accuracy(clf,x_train,y_train,x_test,y_test)
+iris_feature = 'sepal length', 'sepal width', 'petal lenght', 'petal width'#提取特征
+#'萼片长度' '萼片宽度' '花瓣长度' '花瓣宽度'
+
+def draw(clf,x):
+    x1_min,x1_max=x[:,0].min(),x[:,0].max()
+    x2_min,x2_max=x[:,1].min(),x[:,1].max()
+    x1,x2=np.mgrid[x1_min:x1_max:200j,x2_min:x2_max:200j]
+    grid_test=np.stack((x1.flat,x2.flat),axis=1)
+    print('gril_test:\n',grid_test)
+    z = clf.decision_function(grid_test)
+    print('the distance to decision plane:\n', z)
+    grid_hat = clf.predict(grid_test) 
+    print('grid_hat:\n', grid_hat)  
+    grid_hat = grid_hat.reshape(x1.shape)
+    cm_light = mpl.colors.ListedColormap(['#A0FFA0', '#FFA0A0', '#A0A0FF'])
+    cm_dark = mpl.colors.ListedColormap(['g', 'b', 'r'])
+    plt.pcolormesh(x1, x2, grid_hat, cmap=cm_light)                                   
+    #plt.scatter(x[:, 0], x[:, 1], c=y, edgecolor='k', s=50, cmap=cm_dark) 
+    plt.scatter(x_test[:, 0], x_test[:, 1], s=120, facecolor='none', zorder=10)       
+    plt.xlabel(iris_feature[0], fontsize=13)
+    plt.ylabel(iris_feature[1], fontsize=13)
+    plt.xlim(x1_min, x1_max)
+    plt.ylim(x2_min, x2_max)
+    plt.title('svm in iris data classification', fontsize=15)
+    plt.grid()
+    plt.show()
+x=x[:,0:2]
+x_train,x_test,y_train,y_test=model_selection.train_test_split(x,y,random_state=1,test_size=0.3)
+clf=classifier()
+train(clf,x_train,y_train)
+draw(clf,x)	
